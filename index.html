@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>House Price AI</title>
+
+<style>
+body{
+    margin:0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#0f172a,#1e293b,#0f172a);
+    color:white;
+}
+
+.container{
+    max-width:900px;
+    margin:50px auto;
+    padding:30px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    border-radius:20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+h1{
+    text-align:center;
+    font-size:32px;
+    margin-bottom:20px;
+}
+
+.sub{
+    text-align:center;
+    opacity:0.7;
+    margin-bottom:30px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+input{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    outline:none;
+    font-size:14px;
+}
+
+input:focus{
+    box-shadow:0 0 10px #38bdf8;
+}
+
+button{
+    margin-top:20px;
+    padding:14px;
+    width:100%;
+    border:none;
+    border-radius:10px;
+    background: linear-gradient(90deg,#06b6d4,#3b82f6);
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+.card{
+    margin-top:20px;
+    padding:20px;
+    border-radius:15px;
+    background: rgba(255,255,255,0.1);
+}
+
+.result h2{
+    font-size:28px;
+    color:#22c55e;
+}
+
+.small{
+    opacity:0.8;
+}
+
+hr{
+    margin:30px 0;
+    border:0.5px solid rgba(255,255,255,0.2);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🏠 House Price AI Predictor</h1>
+<div class="sub">Fast • ML Powered • Real-time Prediction</div>
+
+<div class="grid">
+
+<input id="MedInc" placeholder="Median Income">
+<input id="HouseAge" placeholder="House Age">
+<input id="AveRooms" placeholder="Average Rooms">
+<input id="AveBedrms" placeholder="Bedrooms">
+<input id="Population" placeholder="Population">
+<input id="AveOccup" placeholder="Occupancy">
+<input id="Latitude" placeholder="Latitude">
+<input id="Longitude" placeholder="Longitude">
+
+</div>
+
+<button onclick="predict()">Predict Price</button>
+
+<div id="result" class="card"></div>
+
+<hr>
+
+<h3>📁 Upload CSV for Bulk Prediction</h3>
+
+<input type="file" id="csv">
+<button onclick="uploadCSV()">Upload & Download Result</button>
+
+</div>
+
+<script>
+
+async function predict(){
+
+try{
+
+const data={
+MedInc:Number(document.getElementById("MedInc").value),
+HouseAge:Number(document.getElementById("HouseAge").value),
+AveRooms:Number(document.getElementById("AveRooms").value),
+AveBedrms:Number(document.getElementById("AveBedrms").value),
+Population:Number(document.getElementById("Population").value),
+AveOccup:Number(document.getElementById("AveOccup").value),
+Latitude:Number(document.getElementById("Latitude").value),
+Longitude:Number(document.getElementById("Longitude").value)
+};
+
+const res=await fetch("http://127.0.0.1:8001/prediction",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+});
+
+const result=await res.json();
+
+document.getElementById("result").innerHTML=`
+<div class="result">
+<h2>${result.predicted_price}</h2>
+<p class="small">${result.predicted_price_short}</p>
+<p class="small">${result.confidence_range || result.fidence_range}</p>
+</div>
+`;
+
+}catch(err){
+alert("Prediction failed");
+console.log(err);
+}
+
+}
+
+
+
+async function uploadCSV(){
+
+const file=document.getElementById("csv").files[0];
+
+if(!file){
+alert("Select file first");
+return;
+}
+
+const form=new FormData();
+form.append("file",file);
+
+const res=await fetch("http://127.0.0.1:8001/predict-file",{
+method:"POST",
+body:form
+});
+
+const blob=await res.blob();
+const url=window.URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+a.href=url;
+a.download="predictions.csv";
+a.click();
+
+}
+
+</script>
+
+</body>
+</html>
