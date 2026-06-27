@@ -4,32 +4,8 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import pandas as pd
-from fastapi.middleware.cors import CORSMiddleware
-import requests
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-import requests
-
-# Google Drive direct download links
-model_url = "https://drive.google.com/uc?export=download&id=1eYml3WNP_-zm8HBaNXZ7pNgMLdUcbyaH"
-
-feature_url = "https://drive.google.com/uc?export=download&id=1Z-5vC7M3quoftvLmzceSqwJuQzseX-4E"
-
-def download_file(url, filename):
-    r = requests.get(url)
-    with open(filename, "wb") as f:
-        f.write(r.content)
-
-download_file(model_url, "house_model.joblib")
-download_file(feature_url, "house_features.joblib")
 
 model = joblib.load("house_model.joblib")
 features = joblib.load("house_features.joblib")
